@@ -12,42 +12,59 @@ export default async function ProfilePage({
   const profile = getProfile(id);
   if (!profile) notFound();
 
-  const latestBriefing = profile.briefings.at(-1);
-
   return (
     <main>
+      <Link href="/" className="inline-block text-sm mb-6" style={{ color: "#aaa" }}>
+        ← All profiles
+      </Link>
+
+      {/* Hero */}
       <div className="mb-8">
-        <Link href="/" className="text-zinc-400 text-sm hover:text-zinc-600 mb-4 inline-block">
-          ← All profiles
-        </Link>
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-zinc-900">{profile.topic}</h1>
-            <p className="text-zinc-400 text-sm mt-1">
-              {profile.sources.length} source{profile.sources.length !== 1 ? "s" : ""} ·{" "}
-              {profile.briefings.length} briefing{profile.briefings.length !== 1 ? "s" : ""}
-            </p>
-          </div>
-        </div>
+        <h1
+          className="text-2xl font-semibold tracking-tight"
+          style={{ color: "#1a1a1a", letterSpacing: "-0.03em" }}
+        >
+          {profile.topic}
+        </h1>
+        <p className="mt-1 text-sm" style={{ color: "#aaa" }}>
+          {profile.sources.length} source{profile.sources.length !== 1 ? "s" : ""}
+          {profile.briefings.length > 0 && (
+            <> · {profile.briefings.length} briefing{profile.briefings.length !== 1 ? "s" : ""}</>
+          )}
+        </p>
       </div>
 
-      <div className="grid gap-6">
+      <div className="space-y-4">
+        {/* Generate section */}
+        <div
+          className="rounded-2xl p-6"
+          style={{ background: "#fff", border: "1px solid #ebe8e3" }}
+        >
+          <GenerateBriefing profileId={profile.id} />
+        </div>
+
         {/* Sources */}
-        <section className="bg-white rounded-xl border border-zinc-200 p-5">
-          <h2 className="text-sm font-semibold text-zinc-500 uppercase tracking-wide mb-3">
+        <div
+          className="rounded-2xl p-6"
+          style={{ background: "#fff", border: "1px solid #ebe8e3" }}
+        >
+          <p className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: "#bbb" }}>
             Sources
-          </h2>
-          <ul className="space-y-2">
+          </p>
+          <ul className="space-y-3">
             {profile.sources.map((s) => (
-              <li key={s.id} className="flex items-center gap-3">
-                <div className="w-1.5 h-1.5 rounded-full bg-zinc-300 shrink-0" />
+              <li key={s.id} className="flex items-start gap-3">
+                <div className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0" style={{ background: "#d4d0ca" }} />
                 <div className="min-w-0">
-                  <span className="text-sm font-medium text-zinc-700">{s.label || "Source"}</span>
+                  <p className="text-sm font-medium" style={{ color: "#1a1a1a" }}>
+                    {s.label || "Source"}
+                  </p>
                   <a
                     href={s.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block text-xs text-zinc-400 hover:text-blue-500 truncate"
+                    className="text-xs truncate block hover:underline"
+                    style={{ color: "#aaa" }}
                   >
                     {s.url}
                   </a>
@@ -55,44 +72,41 @@ export default async function ProfilePage({
               </li>
             ))}
           </ul>
-        </section>
+        </div>
 
-        {/* Generate */}
-        <section className="bg-white rounded-xl border border-zinc-200 p-5">
-          <GenerateBriefing profileId={profile.id} />
-        </section>
-
-        {/* Briefing history */}
+        {/* Past briefings */}
         {profile.briefings.length > 0 && (
-          <section>
-            <h2 className="text-sm font-semibold text-zinc-500 uppercase tracking-wide mb-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider mb-3 px-1" style={{ color: "#bbb" }}>
               Past briefings
-            </h2>
-            <div className="space-y-2">
+            </p>
+            <div className="space-y-1.5">
               {[...profile.briefings].reverse().map((b, i) => (
                 <Link
                   key={b.id}
                   href={`/profiles/${profile.id}/briefings/${b.id}`}
-                  className="bg-white rounded-xl border border-zinc-200 p-4 flex items-center justify-between hover:border-zinc-400 transition-colors group"
+                  className="flex items-center justify-between rounded-xl px-5 py-3.5 transition-all group"
+                  style={{ background: "#fff", border: "1px solid #ebe8e3" }}
                 >
                   <div>
-                    <p className="text-sm font-medium text-zinc-700 group-hover:text-zinc-900">
-                      {i === 0 ? "Latest briefing" : `Briefing ${profile.briefings.length - i}`}
+                    <p className="text-sm font-medium" style={{ color: "#1a1a1a" }}>
+                      {i === 0 ? "Latest" : `Briefing ${profile.briefings.length - i}`}
                     </p>
-                    <p className="text-xs text-zinc-400">
+                    <p className="text-xs mt-0.5" style={{ color: "#bbb" }}>
                       {new Date(b.createdAt).toLocaleDateString("en-US", {
                         weekday: "short",
                         month: "short",
                         day: "numeric",
-                        year: "numeric",
                       })}
                     </p>
                   </div>
-                  <span className="text-zinc-300 group-hover:text-zinc-500">→</span>
+                  <span className="text-sm transition-transform group-hover:translate-x-0.5" style={{ color: "#d4d0ca" }}>
+                    →
+                  </span>
                 </Link>
               ))}
             </div>
-          </section>
+          </div>
         )}
       </div>
     </main>
