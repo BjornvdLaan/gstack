@@ -1,0 +1,50 @@
+name: 'PQC Scanner'
+description: 'Scan for quantum-vulnerable cryptography (RSA, ECDSA, DH). Generates NIS2/DORA/NIST FIPS compliance report.'
+author: 'PQC Scanner'
+
+branding:
+  icon: 'shield'
+  color: 'red'
+
+inputs:
+  fail-on:
+    description: 'Minimum severity that fails the build: CRITICAL | HIGH | MEDIUM | LOW'
+    default: 'HIGH'
+    required: false
+  report-url:
+    description: 'POST the compliance report JSON to this URL (compliance dashboard endpoint)'
+    required: false
+  report-token:
+    description: 'Bearer token for the report-url endpoint'
+    required: false
+  api-key:
+    description: 'Anthropic API key — enables AI risk scoring (sends 5-line snippets only)'
+    required: false
+  ai-scoring:
+    description: 'Enable AI risk scoring'
+    default: 'false'
+    required: false
+  paths:
+    description: 'Space-separated glob patterns to scan'
+    default: '**/*.java **/*.py **/*.js **/*.mjs **/*.ts **/*.tsx **/*.go'
+    required: false
+  exclude:
+    description: 'Space-separated glob patterns to exclude (e.g. "test/** vendor/**")'
+    default: ''
+    required: false
+
+outputs:
+  critical-count:
+    description: 'Number of CRITICAL severity findings'
+  high-count:
+    description: 'Number of HIGH severity findings'
+  total-count:
+    description: 'Total findings count'
+  report-json:
+    description: 'Path to the full report JSON file (in RUNNER_TEMP)'
+  compliant:
+    description: '"true" if no findings above fail-on threshold, "false" otherwise'
+
+runs:
+  using: 'node20'
+  main: 'action/dist/index.js'

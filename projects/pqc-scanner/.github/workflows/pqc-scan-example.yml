@@ -1,0 +1,46 @@
+# Example: add this to your own repository to scan for quantum-vulnerable crypto.
+# Copy to .github/workflows/pqc-scan.yml in the repo you want to scan.
+
+name: PQC Security Scan
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  pqc-scan:
+    name: Quantum Cryptography Audit
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: PQC Scanner
+        id: pqc
+        uses: pqcscanner/pqc-scanner-action@v1   # <-- published on GitHub Marketplace
+        with:
+          fail-on: HIGH                            # fail PR if HIGH or CRITICAL found
+          paths: '**/*.java **/*.py **/*.go **/*.ts'
+          # report-url: ${{ secrets.PQC_REPORT_URL }}      # optional: compliance dashboard
+          # report-token: ${{ secrets.PQC_REPORT_TOKEN }}  # optional: auth token
+          # api-key: ${{ secrets.ANTHROPIC_API_KEY }}       # optional: AI risk scoring
+          # ai-scoring: 'true'                              # optional: enable AI scoring
+
+      - name: Upload report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pqc-report
+          path: ${{ steps.pqc.outputs.report-json }}
+          retention-days: 90
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "Total findings: ${{ steps.pqc.outputs.total-count }}"
+          echo "Critical: ${{ steps.pqc.outputs.critical-count }}"
+          echo "High: ${{ steps.pqc.outputs.high-count }}"
+          echo "Compliant: ${{ steps.pqc.outputs.compliant }}"
