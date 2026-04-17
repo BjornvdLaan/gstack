@@ -1,6 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk'
-import { Finding, Language, ScanReport, RiskSummary, ComplianceStatus, AIRiskScore, Severity } from './types'
-import { loadRules } from './rules'
+import { Finding, Language, Rule, ScanReport, RiskSummary, ComplianceStatus, AIRiskScore, Severity } from './types'
 import { randomUUID } from 'crypto'
 
 const EXTENSIONS: Record<string, Language> = {
@@ -19,7 +18,6 @@ export function detectLanguage(filename: string): Language {
   return EXTENSIONS[ext] ?? 'unknown'
 }
 
-// Returns 5 lines of context around a match (no more — privacy boundary)
 function extractSnippet(lines: string[], matchLine: number): string {
   const start = Math.max(0, matchLine - 2)
   const end = Math.min(lines.length - 1, matchLine + 2)
@@ -29,12 +27,11 @@ function extractSnippet(lines: string[], matchLine: number): string {
 export function scanFile(
   content: string,
   filename: string,
-  projectDir?: string
+  rules: Rule[]
 ): Finding[] {
   const language = detectLanguage(filename)
   if (language === 'unknown') return []
 
-  const rules = loadRules(projectDir)
   const lines = content.split('\n')
   const findings: Finding[] = []
 

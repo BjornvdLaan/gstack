@@ -1,21 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
-import { getOrgByKey, saveReport, readOrgs, getOrg } from '@/lib/store'
-import { SEED_REPORTS } from '@/lib/seed'
+import { getOrgByKey, saveReport, getOrg } from '@/lib/store'
+import { ensureSeeded } from '@/lib/seed'
 import { StoredReport } from '@/lib/types'
-
-// Seed demo org on first request
-let seeded = false
-function ensureSeeded() {
-  if (seeded) return
-  seeded = true
-  const org = getOrg('demo')
-  if (org && org.reports.length === 0) {
-    for (const r of SEED_REPORTS) {
-      saveReport('demo', r)
-    }
-  }
-}
 
 export async function POST(req: NextRequest) {
   ensureSeeded()

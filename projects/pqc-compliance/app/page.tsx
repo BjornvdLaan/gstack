@@ -1,18 +1,7 @@
 import { getOrg, getRepoSummaries } from '@/lib/store'
-import { SEED_REPORTS } from '@/lib/seed'
-import { saveReport } from '@/lib/store'
+import { ensureSeeded } from '@/lib/seed'
 import Link from 'next/link'
 import { ComplianceStatus, RepoSummary, RiskSummary } from '@/lib/types'
-
-let seeded = false
-function ensureSeeded() {
-  if (seeded) return
-  seeded = true
-  const org = getOrg('demo')
-  if (org && org.reports.length === 0) {
-    for (const r of SEED_REPORTS) saveReport('demo', r)
-  }
-}
 
 const COMPLIANCE_LABEL: Record<string, { label: string; bg: string; color: string }> = {
   'COMPLIANT':     { label: 'Compliant',     bg: '#f0fff4', color: '#1e8449' },

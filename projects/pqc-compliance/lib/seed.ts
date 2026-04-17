@@ -1,7 +1,15 @@
-// Demo data seeded on first request so the dashboard isn't empty.
-// In production this file is not needed.
-
 import { StoredReport } from './types'
+import { getOrg, saveReport } from './store'
+
+let seeded = false
+export function ensureSeeded() {
+  if (seeded) return
+  seeded = true
+  const org = getOrg('demo')
+  if (org && org.reports.length === 0) {
+    for (const r of SEED_REPORTS) saveReport('demo', r)
+  }
+}
 
 export const SEED_REPORTS: StoredReport[] = [
   {

@@ -10,8 +10,7 @@ const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 export async function POST(req: NextRequest) {
   const { profileId, apiKey } = await req.json()
 
-  const effectiveApiKey = apiKey || process.env.ANTHROPIC_API_KEY
-  if (!effectiveApiKey) {
+  if (!apiKey && !process.env.ANTHROPIC_API_KEY) {
     return Response.json({ error: 'No API key provided' }, { status: 400 })
   }
 

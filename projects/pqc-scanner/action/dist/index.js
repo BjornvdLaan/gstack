@@ -65661,7 +65661,10 @@ function scanFile(content, filename, rules) {
 // ─── Compliance mapping ───────────────────────────────────────────────────────
 
 function buildCompliance(findings) {
-  const hasHighOrCritical = findings.some(f => f.severity === 'HIGH' || f.severity === 'CRITICAL')
+  const hasHighOrCritical = findings.some(f => {
+    const sev = f.aiRisk?.severity ?? f.severity
+    return sev === 'HIGH' || sev === 'CRITICAL'
+  })
   const status = hasHighOrCritical ? 'NON-COMPLIANT' : findings.length > 0 ? 'AT RISK' : 'COMPLIANT'
   return {
     nist_fips_203: status,
@@ -65751,7 +65754,7 @@ async function run() {
     // Counts
     const counts = { critical: 0, high: 0, medium: 0, low: 0, safe: 0 }
     for (const f of allFindings) {
-      const sev = f.severity.toLowerCase()
+      const sev = (f.aiRisk?.severity ?? f.severity).toLowerCase()
       if (sev in counts) counts[sev]++
     }
 

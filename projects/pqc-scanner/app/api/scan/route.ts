@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server'
 import { scanFile, scoreWithAI, buildReport, detectLanguage } from '@/lib/scanner'
+import { loadRules } from '@/lib/rules'
 import { Finding, Language } from '@/lib/types'
 
 const MAX_FILE_SIZE = 512 * 1024   // 512 KB per file
@@ -82,6 +83,7 @@ export async function POST(req: NextRequest) {
           throw new Error('Provide a GitHub URL or file content.')
         }
 
+        const rules = loadRules()
         const allFindings: Finding[] = []
         const languages: Language[] = []
 
@@ -89,7 +91,7 @@ export async function POST(req: NextRequest) {
           const lang = detectLanguage(file.name)
           if (lang !== 'unknown') languages.push(lang)
 
-          const findings = scanFile(file.content, file.name)
+          const findings = scanFile(file.content, file.name, rules)
           allFindings.push(...findings)
 
           if (findings.length > 0) {
