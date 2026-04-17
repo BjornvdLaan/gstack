@@ -65503,6 +65503,122 @@ function loadCustomRules(workspaceDir) {
   return rules
 }
 
+// ─── External rule sets ───────────────────────────────────────────────────────
+// Rule format (our native YAML, Semgrep-metadata-compatible):
+//
+//   - id: java-rsa-custom
+//     language: java                  # or 'any'
+//     pattern: "MyRSA\\.sign\\("      # regex, matched per-line case-insensitively
+//     algorithm: RSA                  # human label shown in report
+//     severity: HIGH                  # CRITICAL | HIGH | MEDIUM | LOW | SAFE
+//     message: "Custom RSA wrapper is quantum-vulnerable"
+//     migration: "Replace with ML-DSA"
+//     # Semgrep-compatible metadata (optional, for tooling interop):
+//     metadata:
+//       semgrep_id: java.lang.security.audit.rsa-padding-set.rsa-padding-set
+//       cwe: CWE-327
+//       references: ["NIST FIPS 204"]
+//
+// The `pattern` field is a plain regex here. To use a full Semgrep rule,
+// reference it via metadata.semgrep_id (V3: run via Semgrep binary).
+
+const VALID_SEVERITIES = new Set(['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'SAFE'])
+
+function parseRuleYaml(content, source) {
+  try {
+    const parsed = yaml.load(content)
+    // Support both array of rules and Semgrep-style { rules: [...] }
+    const raw = Array.isArray(parsed) ? parsed
+      : parsed?.rules ? parsed.rules
+      : [parsed]
+
+    return raw
+      .filter(r => r && r.id && r.pattern && r.message && r.migration)
+      .map(r => {
+        const severity = (r.severity || 'HIGH').toUpperCase()
+        return {
+          id: `${source}:${r.id}`,
+          language: r.language || r.languages?.[0] || 'any',
+          pattern: r.pattern,
+          algorithm: r.algorithm || r.metadata?.algorithm || 'Unknown',
+          severity: VALID_SEVERITIES.has(severity) ? severity : 'HIGH',
+          message: r.message,
+          migration: r.migration || r.metadata?.migration || 'See rule documentation.',
+          semgrep_id: r.metadata?.semgrep_id,
+          references: r.metadata?.references || r.references,
+        }
+      })
+  } catch {
+    return []
+  }
+}
+
+async function fetchExternalRuleSets(ruleSetsInput, githubToken) {
+  if (!ruleSetsInput.trim()) return []
+
+  const refs = ruleSetsInput.trim().split(/\s+/).filter(Boolean)
+  const allRules = []
+
+  const headers = {
+    'Accept': 'application/vnd.github+json',
+    'User-Agent': 'pqc-scanner-action/1.0',
+    ...(githubToken ? { Authorization: `Bearer ${githubToken}` } : {}),
+  }
+
+  for (const ref of refs) {
+    const [repoPath, refName = 'main'] = ref.split('@')
+    const [owner, repo] = repoPath.split('/')
+    if (!owner || !repo) {
+      core.warning(`Invalid rule-set reference: "${ref}" — use owner/repo@ref format`)
+      continue
+    }
+
+    core.info(`Fetching rule set: ${repoPath}@${refName}`)
+    try {
+      // Get file tree for the rules/ directory
+      const treeRes = await fetch(
+        `https://api.github.com/repos/${owner}/${repo}/git/trees/${refName}?recursive=1`,
+        { headers, signal: AbortSignal.timeout(10000) }
+      )
+      if (!treeRes.ok) {
+        core.warning(`Rule set ${repoPath}@${refName}: GitHub API returned ${treeRes.status}`)
+        continue
+      }
+      const tree = await treeRes.json()
+
+      const ruleFiles = (tree.tree || []).filter(f =>
+        f.type === 'blob' &&
+        (f.path.startsWith('rules/') || f.path === 'rules.yaml' || f.path === 'rules.yml') &&
+        (f.path.endsWith('.yaml') || f.path.endsWith('.yml'))
+      )
+
+      if (ruleFiles.length === 0) {
+        core.warning(`Rule set ${repoPath}: no .yaml files found in rules/ directory`)
+        continue
+      }
+
+      let loaded = 0
+      for (const file of ruleFiles) {
+        const rawRes = await fetch(
+          `https://raw.githubusercontent.com/${owner}/${repo}/${refName}/${file.path}`,
+          { headers, signal: AbortSignal.timeout(8000) }
+        )
+        if (!rawRes.ok) continue
+        const content = await rawRes.text()
+        const rules = parseRuleYaml(content, repoPath)
+        allRules.push(...rules)
+        loaded += rules.length
+      }
+
+      core.info(`  Loaded ${loaded} rule(s) from ${repoPath}@${refName} (${ruleFiles.length} file(s))`)
+    } catch (err) {
+      core.warning(`Failed to load rule set ${ref}: ${err}`)
+    }
+  }
+
+  return allRules
+}
+
 // ─── Scanner ─────────────────────────────────────────────────────────────────
 
 function extractSnippet(lines, matchLine) {
@@ -65595,15 +65711,20 @@ async function run() {
     const reportToken = core.getInput('report-token')
     const paths = core.getInput('paths') || '**/*.java **/*.py **/*.js **/*.mjs **/*.ts **/*.tsx **/*.go'
     const exclude = core.getInput('exclude') || ''
+    const ruleSets = core.getInput('rule-sets') || ''
+    const githubToken = core.getInput('github-token') || process.env.GITHUB_TOKEN || ''
     const workspace = process.env.GITHUB_WORKSPACE || process.cwd()
 
     core.info('PQC Scanner — detecting quantum-vulnerable cryptography')
     core.info(`Fail on: ${failOn} and above`)
 
-    // Load rules: built-in + local custom
-    const customRules = loadCustomRules(workspace)
-    const allRules = [...BUILT_IN_RULES, ...customRules]
-    core.info(`Rules loaded: ${BUILT_IN_RULES.length} built-in, ${customRules.length} custom`)
+    // Load rules: built-in + external rule sets + local custom
+    const [externalRules, localRules] = await Promise.all([
+      fetchExternalRuleSets(ruleSets, githubToken),
+      Promise.resolve(loadCustomRules(workspace)),
+    ])
+    const allRules = [...BUILT_IN_RULES, ...externalRules, ...localRules]
+    core.info(`Rules loaded: ${BUILT_IN_RULES.length} built-in, ${externalRules.length} external, ${localRules.length} local`)
 
     // Glob files
     const includePatterns = paths.split(/\s+/).filter(Boolean)

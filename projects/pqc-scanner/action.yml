@@ -32,6 +32,17 @@ inputs:
     description: 'Space-separated glob patterns to exclude (e.g. "test/** vendor/**")'
     default: ''
     required: false
+  rule-sets:
+    description: >
+      Space-separated list of external rule set repos in "owner/repo@ref" format.
+      Each repo must have a rules/ directory containing .yaml/.yml rule files.
+      Example: "quantumdrive/pqc-rules@v1 myorg/custom-rules@main"
+    default: ''
+    required: false
+  github-token:
+    description: 'GitHub token for fetching private rule set repos (defaults to GITHUB_TOKEN)'
+    default: ${{ github.token }}
+    required: false
 
 outputs:
   critical-count:

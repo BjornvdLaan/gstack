@@ -129,10 +129,29 @@ steps:
       report-url: ${{ secrets.PQC_DASHBOARD_URL }}
 ```
 
-## Custom Rules (Plugin System)
+## Rule Sets
 
-Add a `.pqc/rules/` directory to your repository with YAML rule files.
-The action loads these alongside built-in rules automatically — no config needed.
+Rules come from three sources, applied in this order:
+
+1. **Built-in** — 25+ patterns bundled in the action (Java, Python, JS/TS, Go)
+2. **External rule sets** — fetched from GitHub repos at action runtime
+3. **Local rules** — `.pqc/rules/*.yaml` in your repository (highest priority)
+
+### External rule sets
+
+Reference any GitHub repo containing `rules/*.yaml` files:
+
+```yaml
+- uses: quantumdrive/harbinger@v1
+  with:
+    rule-sets: 'quantumdrive/pqc-rules@v1 myorg/custom-rules@main'
+```
+
+- Uses `github-token` (defaults to `${{ github.token }}`) for private repos
+- Rules are namespaced by source repo: `myorg/custom-rules:rule-id`
+- Fetched fresh on every run — pin to a tag for stability
+
+### Local custom rules
 
 ```yaml
 # .pqc/rules/internal-crypto.yaml

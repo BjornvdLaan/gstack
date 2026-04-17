@@ -1,0 +1,63 @@
+# Python PQC detection rules
+# Covers: cryptography, paramiko, pycryptodome, pyOpenSSL
+
+- id: python-rsa-generate
+  language: python
+  pattern: 'rsa\.generate_private_key|RSA\.generate|generate_private_key.*rsa'
+  algorithm: RSA
+  severity: HIGH
+  message: RSA key generation is quantum-vulnerable
+  migration: Use pqcrypto or liboqs-python for ML-DSA (signing) or ML-KEM (key exchange).
+  metadata:
+    cwe: CWE-327
+    references: [NIST FIPS 203, NIST FIPS 204]
+
+- id: python-ec-generate
+  language: python
+  pattern: 'ec\.generate_private_key|ECDH\(|ECDSA\('
+  algorithm: ECDSA/ECDH
+  severity: HIGH
+  message: Elliptic curve cryptography is quantum-vulnerable
+  migration: >
+    For signatures: ML-DSA (FIPS 204) via liboqs-python.
+    For key agreement: ML-KEM (FIPS 203) via liboqs-python.
+  metadata:
+    cwe: CWE-327
+    references: [NIST FIPS 203, NIST FIPS 204]
+
+- id: python-rsa-import
+  language: python
+  pattern: 'from cryptography.*import.*RSA|import rsa\b'
+  algorithm: RSA
+  severity: MEDIUM
+  message: RSA import detected — verify this is not used for long-lived key material
+  migration: Audit all uses. Migrate key exchange to ML-KEM, signatures to ML-DSA.
+  metadata:
+    cwe: CWE-327
+    references: [NIST FIPS 203, NIST FIPS 204]
+
+- id: python-paramiko-rsa
+  language: python
+  pattern: 'paramiko\.RSAKey|RSAKey\.generate'
+  algorithm: RSA
+  severity: HIGH
+  message: Paramiko RSA SSH key is quantum-vulnerable
+  migration: >
+    Migrate SSH infrastructure to use ML-KEM hybrid key exchange.
+    OpenSSH 9.0+ supports sntrup761x25519-sha512 hybrid mode.
+    For paramiko: transition to Ed25519 keys at minimum (not quantum-safe but
+    classically stronger); full PQC SSH requires liboqs-openssl patches.
+  metadata:
+    cwe: CWE-327
+    references: [OpenSSH 9.0 release notes, NIST FIPS 203]
+
+- id: python-pycrypto-rsa
+  language: python
+  pattern: 'from Crypto\.PublicKey import RSA|Crypto\.PublicKey\.RSA'
+  algorithm: RSA
+  severity: HIGH
+  message: PyCryptodome RSA usage is quantum-vulnerable
+  migration: Replace with liboqs-python ML-KEM/ML-DSA.
+  metadata:
+    cwe: CWE-327
+    references: [NIST FIPS 203, NIST FIPS 204]
