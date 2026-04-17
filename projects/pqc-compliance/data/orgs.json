@@ -1,0 +1,163 @@
+[
+  {
+    "orgId": "demo",
+    "name": "Demo Organization",
+    "apiKey": "demo-key",
+    "createdAt": "2026-04-17T19:42:54.392Z",
+    "reports": [
+      {
+        "id": "seed-003",
+        "orgId": "demo",
+        "source": "acme-corp/data-api",
+        "ref": "refs/heads/main",
+        "sha": "ghi9012",
+        "scannedAt": "2026-04-16T19:42:54.392Z",
+        "receivedAt": "2026-04-16T19:42:54.392Z",
+        "filesScanned": 18,
+        "rulesApplied": 25,
+        "riskSummary": {
+          "critical": 0,
+          "high": 0,
+          "medium": 0,
+          "low": 0,
+          "safe": 0,
+          "total": 0
+        },
+        "compliance": {
+          "nist_fips_203": "COMPLIANT",
+          "nist_fips_204": "COMPLIANT",
+          "nis2": "COMPLIANT",
+          "dora": "COMPLIANT"
+        },
+        "languagesScanned": [
+          "go"
+        ],
+        "aiScoringEnabled": false,
+        "findings": []
+      },
+      {
+        "id": "seed-002",
+        "orgId": "demo",
+        "source": "acme-corp/auth-service",
+        "ref": "refs/heads/main",
+        "sha": "def5678",
+        "scannedAt": "2026-04-17T14:42:54.392Z",
+        "receivedAt": "2026-04-17T14:42:54.392Z",
+        "filesScanned": 31,
+        "rulesApplied": 25,
+        "riskSummary": {
+          "critical": 0,
+          "high": 1,
+          "medium": 0,
+          "low": 0,
+          "safe": 0,
+          "total": 1
+        },
+        "compliance": {
+          "nist_fips_203": "NON-COMPLIANT",
+          "nist_fips_204": "NON-COMPLIANT",
+          "nis2": "AT RISK",
+          "dora": "AT RISK"
+        },
+        "languagesScanned": [
+          "java",
+          "python"
+        ],
+        "aiScoringEnabled": false,
+        "findings": [
+          {
+            "ruleId": "java-ecdh",
+            "file": "src/main/java/com/acme/auth/SessionManager.java",
+            "line": 67,
+            "column": 12,
+            "algorithm": "ECDH",
+            "severity": "HIGH",
+            "confidence": 8,
+            "snippet": "KeyAgreement ka = KeyAgreement.getInstance(\"ECDH\");\nka.init(privateKey);\nka.doPhase(serverPublicKey, true);",
+            "message": "ECDH key agreement is quantum-vulnerable",
+            "migration": "Replace with ML-KEM (FIPS 203) for key encapsulation."
+          }
+        ]
+      },
+      {
+        "id": "seed-001",
+        "orgId": "demo",
+        "source": "acme-corp/payment-service",
+        "ref": "refs/heads/main",
+        "sha": "abc1234",
+        "scannedAt": "2026-04-17T17:42:54.392Z",
+        "receivedAt": "2026-04-17T17:42:54.392Z",
+        "filesScanned": 84,
+        "rulesApplied": 25,
+        "riskSummary": {
+          "critical": 0,
+          "high": 3,
+          "medium": 1,
+          "low": 0,
+          "safe": 0,
+          "total": 4
+        },
+        "compliance": {
+          "nist_fips_203": "NON-COMPLIANT",
+          "nist_fips_204": "NON-COMPLIANT",
+          "nis2": "AT RISK",
+          "dora": "AT RISK"
+        },
+        "languagesScanned": [
+          "java"
+        ],
+        "aiScoringEnabled": false,
+        "findings": [
+          {
+            "ruleId": "java-rsa-keygen",
+            "file": "src/main/java/com/acme/payment/KeyManager.java",
+            "line": 42,
+            "column": 9,
+            "algorithm": "RSA",
+            "severity": "HIGH",
+            "confidence": 8,
+            "snippet": "KeyPairGenerator kg = KeyPairGenerator.getInstance(\"RSA\");\nkg.initialize(2048, new SecureRandom());\nKeyPair pair = kg.generateKeyPair();",
+            "message": "RSA key generation is quantum-vulnerable",
+            "migration": "Replace with ML-DSA (FIPS 204) for signing or ML-KEM (FIPS 203) for key encapsulation."
+          },
+          {
+            "ruleId": "java-rsa-cipher",
+            "file": "src/main/java/com/acme/payment/CryptoService.java",
+            "line": 18,
+            "column": 28,
+            "algorithm": "RSA",
+            "severity": "HIGH",
+            "confidence": 8,
+            "snippet": "Cipher cipher = Cipher.getInstance(\"RSA/ECB/OAEPWithSHA-256AndMGF1Padding\");\ncipher.init(Cipher.ENCRYPT_MODE, publicKey);",
+            "message": "RSA cipher is quantum-vulnerable",
+            "migration": "Replace with ML-KEM (FIPS 203) for key encapsulation."
+          },
+          {
+            "ruleId": "java-ecdsa",
+            "file": "src/main/java/com/acme/payment/SignatureUtil.java",
+            "line": 31,
+            "column": 9,
+            "algorithm": "ECDSA",
+            "severity": "HIGH",
+            "confidence": 8,
+            "snippet": "KeyPairGenerator kpg = KeyPairGenerator.getInstance(\"EC\");\nkpg.initialize(new ECGenParameterSpec(\"secp256r1\"));",
+            "message": "EC (ECDSA/ECDH) key generation is quantum-vulnerable",
+            "migration": "For signatures: ML-DSA (FIPS 204). For key agreement: ML-KEM (FIPS 203)."
+          },
+          {
+            "ruleId": "python-rsa-import",
+            "file": "scripts/token_verify.py",
+            "line": 3,
+            "column": 1,
+            "algorithm": "RSA",
+            "severity": "MEDIUM",
+            "confidence": 8,
+            "snippet": "from cryptography.hazmat.primitives.asymmetric import rsa\nfrom cryptography.hazmat.primitives import hashes",
+            "message": "RSA import detected — verify usage is not for long-lived keys",
+            "migration": "Audit all uses. Migrate key exchange to ML-KEM, signatures to ML-DSA."
+          }
+        ]
+      }
+    ]
+  }
+]
