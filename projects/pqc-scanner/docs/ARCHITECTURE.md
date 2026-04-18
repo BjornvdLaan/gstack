@@ -40,7 +40,7 @@ trust model as Snyk, Semgrep, and Trivy.
        │               Output routing             │
        │                                          │
        ├─ [free]       CI logs + build fail       │
-       ├─ [paid SaaS]  POST → pqc-scanner.io      │
+       ├─ [paid SaaS]  POST → observer.getquantumdrive.io      │
        ├─ [enterprise] POST → self-hosted server  │
        └─ [integration] → SonarQube / Snyk API    │
 ```
@@ -205,9 +205,9 @@ receives and stores reports.
 V2 will support rule sets from external GitHub repos:
 
 ```yaml
-- uses: pqcscanner/pqc-scanner-action@v1
+- uses: GetQuantumDrive/observer@v1
   with:
-    rule-sets: 'pqcscanner/pqc-rules@v1 myorg/private-rules@main'
+    rule-sets: 'GetQuantumDrive/observer-rules@v1 myorg/private-rules@main'
 ```
 
 The action fetches `rules/*.yaml` from each repo at the ref specified,

@@ -1,6 +1,6 @@
 # PQC Rules
 
-Community-maintained detection rules for [Harbinger](https://github.com/quantumdrive/harbinger) —
+Community-maintained detection rules for [Observer](https://github.com/GetQuantumDrive/observer) —
 the post-quantum cryptography scanner.
 
 ## Structure
@@ -54,9 +54,9 @@ AST-based detection (V3). To run the Semgrep version today, use the
 ## Using this rule set
 
 ```yaml
-- uses: quantumdrive/harbinger@v1
+- uses: GetQuantumDrive/observer@v1
   with:
-    rule-sets: 'quantumdrive/pqc-rules@v1'
+    rule-sets: 'GetQuantumDrive/observer-rules@v1'
 ```
 
 ## License

@@ -14,8 +14,11 @@ const DEMO_ORG: OrgData = {
   reports: [],
 }
 
+let dataDirEnsured = false
 function ensureDataDir() {
+  if (dataDirEnsured) return
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true })
+  dataDirEnsured = true
 }
 
 export function readOrgs(): OrgData[] {

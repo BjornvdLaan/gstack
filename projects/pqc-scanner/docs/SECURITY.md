@@ -38,7 +38,7 @@ The `action/dist/index.js` is a pre-bundled single file (via `@vercel/ncc`).
 Dependencies: `@actions/core`, `@actions/glob`, `js-yaml`. All MIT licensed.
 Pin the action to a specific SHA for supply chain safety:
 ```yaml
-uses: pqcscanner/pqc-scanner-action@abc1234  # pin to commit SHA
+uses: GetQuantumDrive/observer@abc1234  # pin to commit SHA
 ```
 
 ## Web Demo Security

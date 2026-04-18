@@ -16,7 +16,7 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
-      - uses: pqcscanner/pqc-scanner-action@v1
+      - uses: GetQuantumDrive/observer@v1
         with:
           fail-on: HIGH
 ```
@@ -27,18 +27,18 @@ appear in the job summary. PRs fail if HIGH or CRITICAL findings are detected.
 ## Distribution
 
 The action is published on the **GitHub Actions Marketplace**:
-`marketplace.github.com/actions/pqc-scanner`
+`marketplace.github.com/actions/observer`
 
-When the repo splits to `github.com/pqcscanner/pqc-scanner-action`:
+When the repo splits to `github.com/GetQuantumDrive/observer`:
 1. Any public repo with `action.yml` at root auto-qualifies for the marketplace
 2. Create a release: `git tag v1.0.0 && git push --tags`
 3. GitHub surfaces the action in marketplace search
 
 Users reference it as:
 ```yaml
-uses: pqcscanner/pqc-scanner-action@v1    # floating major version (recommended)
-uses: pqcscanner/pqc-scanner-action@v1.2.0  # pinned version
-uses: pqcscanner/pqc-scanner-action@abc123  # pinned to commit SHA (most secure)
+uses: GetQuantumDrive/observer@v1    # floating major version (recommended)
+uses: GetQuantumDrive/observer@v1.2.0  # pinned version
+uses: GetQuantumDrive/observer@abc123  # pinned to commit SHA (most secure)
 ```
 
 ## Inputs
@@ -68,7 +68,7 @@ uses: pqcscanner/pqc-scanner-action@abc123  # pinned to commit SHA (most secure)
 ### Send report to compliance dashboard
 
 ```yaml
-- uses: pqcscanner/pqc-scanner-action@v1
+- uses: GetQuantumDrive/observer@v1
   with:
     fail-on: HIGH
     report-url: ${{ secrets.PQC_DASHBOARD_URL }}
@@ -81,7 +81,7 @@ The server stores and aggregates reports across repos for NIS2/DORA reporting.
 ### Enable AI risk scoring
 
 ```yaml
-- uses: pqcscanner/pqc-scanner-action@v1
+- uses: GetQuantumDrive/observer@v1
   with:
     api-key: ${{ secrets.ANTHROPIC_API_KEY }}
     ai-scoring: 'true'
@@ -93,7 +93,7 @@ severity assessment. Requires a DPA with Anthropic for enterprise use.
 ### Save report as artifact
 
 ```yaml
-- uses: pqcscanner/pqc-scanner-action@v1
+- uses: GetQuantumDrive/observer@v1
   id: pqc
 
 - uses: actions/upload-artifact@v4
@@ -107,7 +107,7 @@ severity assessment. Requires a DPA with Anthropic for enterprise use.
 ### Scan specific directories, exclude tests
 
 ```yaml
-- uses: pqcscanner/pqc-scanner-action@v1
+- uses: GetQuantumDrive/observer@v1
   with:
     paths: 'src/**/*.java src/**/*.go'
     exclude: 'src/test/** src/**/*Test.java'
@@ -123,7 +123,7 @@ strategy:
 
 steps:
   - uses: actions/checkout@v4
-  - uses: pqcscanner/pqc-scanner-action@v1
+  - uses: GetQuantumDrive/observer@v1
     with:
       paths: '${{ matrix.service }}/src/**/*.java'
       report-url: ${{ secrets.PQC_DASHBOARD_URL }}
@@ -142,9 +142,9 @@ Rules come from three sources, applied in this order:
 Reference any GitHub repo containing `rules/*.yaml` files:
 
 ```yaml
-- uses: quantumdrive/harbinger@v1
+- uses: GetQuantumDrive/observer@v1
   with:
-    rule-sets: 'quantumdrive/pqc-rules@v1 myorg/custom-rules@main'
+    rule-sets: 'GetQuantumDrive/observer-rules@v1 myorg/custom-rules@main'
 ```
 
 - Uses `github-token` (defaults to `${{ github.token }}`) for private repos

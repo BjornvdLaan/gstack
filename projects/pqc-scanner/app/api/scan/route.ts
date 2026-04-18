@@ -1,7 +1,13 @@
 import { NextRequest } from 'next/server'
 import { scanFile, scoreWithAI, buildReport, detectLanguage } from '@/lib/scanner'
 import { loadRules } from '@/lib/rules'
-import { Finding, Language } from '@/lib/types'
+import { Finding, Language, ScanReport } from '@/lib/types'
+
+type StreamMessage =
+  | { type: 'status'; message: string }
+  | { type: 'findings'; file: string; findings: Finding[] }
+  | { type: 'report'; report: ScanReport }
+  | { type: 'error'; message: string }
 
 const MAX_FILE_SIZE = 512 * 1024   // 512 KB per file
 const MAX_REPO_FILES = 200
@@ -65,20 +71,20 @@ export async function POST(req: NextRequest) {
 
   const stream = new ReadableStream({
     async start(controller) {
-      function send(type: string, payload: unknown) {
-        controller.enqueue(encoder.encode(JSON.stringify({ type, ...payload as object }) + '\n'))
+      function send(msg: StreamMessage) {
+        controller.enqueue(encoder.encode(JSON.stringify(msg) + '\n'))
       }
 
       try {
         let files: { name: string; content: string }[] = []
 
         if (repoUrl) {
-          send('status', { message: 'Fetching repository…' })
+          send({ type: 'status', message: 'Fetching repository…' })
           files = await fetchGithubFiles(repoUrl)
-          send('status', { message: `Scanning ${files.length} files…` })
+          send({ type: 'status', message: `Scanning ${files.length} files…` })
         } else if (fileContent && fileName) {
           files = [{ name: fileName, content: fileContent }]
-          send('status', { message: `Scanning ${fileName}…` })
+          send({ type: 'status', message: `Scanning ${fileName}…` })
         } else {
           throw new Error('Provide a GitHub URL or file content.')
         }
@@ -95,13 +101,12 @@ export async function POST(req: NextRequest) {
           allFindings.push(...findings)
 
           if (findings.length > 0) {
-            send('findings', { file: file.name, findings })
+            send({ type: 'findings', file: file.name, findings })
           }
         }
 
-        // AI scoring (optional, snippets only — no full files)
         if (aiScoring && apiKey && allFindings.length > 0) {
-          send('status', { message: 'Scoring risk with AI…' })
+          send({ type: 'status', message: 'Scoring risk with AI…' })
           await Promise.all(
             allFindings.map(async finding => {
               const score = await scoreWithAI(finding, apiKey)
@@ -119,10 +124,10 @@ export async function POST(req: NextRequest) {
           !!(aiScoring && apiKey)
         )
 
-        send('report', { report })
+        send({ type: 'report', report })
         controller.close()
       } catch (err) {
-        send('error', { message: String(err).replace('Error: ', '') })
+        send({ type: 'error', message: String(err).replace('Error: ', '') })
         controller.close()
       }
     },

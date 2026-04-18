@@ -5,8 +5,11 @@ import { Profile } from './types'
 const DATA_DIR = path.join(process.cwd(), 'data')
 const PROFILES_FILE = path.join(DATA_DIR, 'profiles.json')
 
+let dataDirEnsured = false
 function ensureDataDir() {
+  if (dataDirEnsured) return
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true })
+  dataDirEnsured = true
 }
 
 export function readProfiles(): Profile[] {
@@ -24,8 +27,8 @@ export function getProfile(id: string): Profile | null {
   return readProfiles().find(p => p.id === id) ?? null
 }
 
-export function saveProfile(profile: Profile) {
-  const profiles = readProfiles()
+export function saveProfile(profile: Profile, existing?: Profile[]) {
+  const profiles = existing ?? readProfiles()
   const idx = profiles.findIndex(p => p.id === profile.id)
   if (idx === -1) profiles.push(profile)
   else profiles[idx] = profile

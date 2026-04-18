@@ -40,7 +40,7 @@ Free tier (open source)
   CLI binary — local scan, JSON output
   Detection rules — open source, community contributions welcome
 
-Paid SaaS (pqc-scanner.io)
+Paid SaaS (observer.getquantumdrive.io)
   Compliance dashboard — NIS2/DORA/NIST FIPS status across all repos
   Trend tracking — are you getting better or worse over time?
   PDF compliance report — board and regulator ready
@@ -62,22 +62,22 @@ The action appears on **GitHub Actions Marketplace** (marketplace.github.com/act
 Any engineer googling "quantum crypto scan" or browsing the marketplace finds it.
 It's free, runs in 30 seconds, zero onboarding friction.
 
-When split to its own repo (`pqcscanner/pqc-scanner-action`):
+When split to its own repo (`GetQuantumDrive/observer`):
 1. Tag a release: `git tag v1 && git push --tags`
 2. GitHub auto-lists it on the marketplace
 3. The `action.yml` `branding` field controls the marketplace icon/color
 
 ### Rule Sets (community moat)
 Detection rules are published as a separate open-source repo
-(`pqcscanner/pqc-rules`). Community can contribute rules for additional
+(`GetQuantumDrive/observer-rules`). Community can contribute rules for additional
 languages (Rust, C++, COBOL, Kotlin, Swift). Enterprises publish private
 rule sets for internal crypto wrappers.
 
 Rule set reference in the action:
 ```yaml
-- uses: pqcscanner/pqc-scanner-action@v1
+- uses: GetQuantumDrive/observer@v1
   with:
-    rule-sets: 'pqcscanner/pqc-rules@v1 myorg/custom-pqc-rules@main'
+    rule-sets: 'GetQuantumDrive/observer-rules@v1 myorg/custom-pqc-rules@main'
 ```
 
 ### Semgrep Registry

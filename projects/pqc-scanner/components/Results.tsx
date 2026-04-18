@@ -165,7 +165,7 @@ export function Results({ report }: { report: ScanReport }) {
             {report.findings.length} finding{report.findings.length !== 1 ? "s" : ""}
           </p>
           <div className="space-y-3">
-            {report.findings
+            {[...report.findings]
               .sort((a, b) => {
                 const order: Record<Severity, number> = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3, SAFE: 4 };
                 return order[a.aiRisk?.severity ?? a.severity] - order[b.aiRisk?.severity ?? b.severity];

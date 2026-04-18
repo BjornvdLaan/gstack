@@ -1,10 +1,10 @@
-name: 'PQC Scanner'
+name: 'Observer'
 description: 'Scan for quantum-vulnerable cryptography (RSA, ECDSA, DH). Generates NIS2/DORA/NIST FIPS compliance report.'
-author: 'PQC Scanner'
+author: 'GetQuantumDrive'
 
 branding:
-  icon: 'shield'
-  color: 'red'
+  icon: 'eye'
+  color: 'blue'
 
 inputs:
   fail-on:
@@ -36,7 +36,7 @@ inputs:
     description: >
       Space-separated list of external rule set repos in "owner/repo@ref" format.
       Each repo must have a rules/ directory containing .yaml/.yml rule files.
-      Example: "quantumdrive/pqc-rules@v1 myorg/custom-rules@main"
+      Example: "GetQuantumDrive/observer-rules@v1 myorg/custom-rules@main"
     default: ''
     required: false
   github-token:

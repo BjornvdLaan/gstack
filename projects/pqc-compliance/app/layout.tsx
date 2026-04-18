@@ -6,7 +6,7 @@ const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
 const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono" });
 
 export const metadata: Metadata = {
-  title: "PQC Compliance",
+  title: "Groundstate",
   description: "NIS2 · DORA · NIST FIPS compliance dashboard for post-quantum cryptography",
 };
 
@@ -21,10 +21,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 className="w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold"
                 style={{ background: "#1a1a1a" }}
               >
-                PQ
+                GS
               </div>
               <span className="text-sm font-semibold tracking-tight" style={{ color: "#1a1a1a" }}>
-                PQC Compliance
+                Groundstate
               </span>
             </div>
             <div className="flex items-center gap-3">

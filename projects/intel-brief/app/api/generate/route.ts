@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { scrapeUrl } from '@/lib/scraper'
-import { getProfile, saveProfile } from '@/lib/store'
+import { readProfiles, getProfile, saveProfile } from '@/lib/store'
 import { Briefing, Citation } from '@/lib/types'
 import { randomUUID } from 'crypto'
 
@@ -15,7 +15,8 @@ export async function POST(req: NextRequest) {
   }
 
   const anthropic = apiKey ? new Anthropic({ apiKey }) : client
-  const profile = getProfile(profileId)
+  const profiles = readProfiles()
+  const profile = profiles.find(p => p.id === profileId) ?? null
   if (!profile) return Response.json({ error: 'Profile not found' }, { status: 404 })
 
   const sources = await Promise.all(
@@ -96,7 +97,7 @@ Write a comprehensive intelligence briefing on "${profile.topic}". Use [1], [2],
           ...profile,
           briefings: [...profile.briefings, briefing],
         }
-        saveProfile(updated)
+        saveProfile(updated, profiles)
 
         controller.enqueue(encoder.encode(`\n\n__BRIEFING_ID__:${briefing.id}`))
         controller.close()

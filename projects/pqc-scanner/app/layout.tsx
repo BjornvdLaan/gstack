@@ -6,7 +6,7 @@ const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
 const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono" });
 
 export const metadata: Metadata = {
-  title: "PQC Scanner",
+  title: "Observer",
   description: "AI-powered quantum cryptography risk scanner for codebases",
 };
 
@@ -21,10 +21,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 className="w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold"
                 style={{ background: "#1a1a1a" }}
               >
-                PQ
+                OB
               </div>
               <span className="text-sm font-semibold tracking-tight" style={{ color: "#1a1a1a" }}>
-                PQC Scanner
+                Observer
               </span>
               <span
                 className="text-xs px-2 py-0.5 rounded-full font-semibold"
