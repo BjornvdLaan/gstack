@@ -1,0 +1,32 @@
+# Build output
+/groundstate
+dist/
+bin/
+
+# Go
+*.test
+*.out
+coverage.html
+
+# Runtime data
+data/
+*.db
+*.db-wal
+*.db-shm
+
+# IDE / tools
+.claude/
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.local
+.env.*
+!.env.example

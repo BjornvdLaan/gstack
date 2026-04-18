@@ -1,0 +1,98 @@
+{{template "layout" .}}
+
+{{define "content"}}
+{{$latest := index .Reports 0}}
+
+<div class="breadcrumb">
+  <a href="/">← All repositories</a>
+</div>
+
+<div style="margin-bottom: 24px;">
+  <div style="font-size: 20px; font-weight: 700; letter-spacing: -0.5px;">{{$latest.Source}}</div>
+  <div style="font-size: 12px; color: #888; margin-top: 4px;">
+    Last scanned {{shortDate $latest.ScannedAt}} · {{$latest.FilesScanned}} files · {{len .Reports}} total scans
+  </div>
+</div>
+
+<!-- Compliance status row -->
+<div style="display: flex; gap: 8px; margin-bottom: 32px; flex-wrap: wrap;">
+  <span class="badge {{complianceClass $latest.Compliance.NIS2}}" style="padding: 4px 12px;">
+    NIS2 {{complianceLabel $latest.Compliance.NIS2}}
+  </span>
+  <span class="badge {{complianceClass $latest.Compliance.DORA}}" style="padding: 4px 12px;">
+    DORA {{complianceLabel $latest.Compliance.DORA}}
+  </span>
+  <span class="badge {{complianceClass $latest.Compliance.NISTFIPS203}}" style="padding: 4px 12px;">
+    NIST FIPS 203 {{complianceLabel $latest.Compliance.NISTFIPS203}}
+  </span>
+  <span class="badge {{complianceClass $latest.Compliance.NISTFIPS204}}" style="padding: 4px 12px;">
+    NIST FIPS 204 {{complianceLabel $latest.Compliance.NISTFIPS204}}
+  </span>
+</div>
+
+<!-- Findings -->
+<div class="section-header">
+  <span class="section-title">Findings</span>
+  <span class="section-count">
+    {{$latest.RiskSummary.Total}} total ·
+    {{$latest.RiskSummary.Critical}} critical ·
+    {{$latest.RiskSummary.High}} high
+  </span>
+</div>
+
+{{if $latest.Findings}}
+<div style="background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; overflow: hidden; margin-bottom: 40px;">
+  <table>
+    <thead>
+      <tr>
+        <th>Location</th>
+        <th>Algorithm</th>
+        <th>Severity</th>
+        <th>Migration</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{range $latest.Findings}}
+      <tr>
+        <td>
+          <span class="file-path">{{.File}}</span>
+          <span class="line-num"> :{{.Line}}</span>
+          {{if .Snippet}}
+          <div class="snippet">{{.Snippet}}</div>
+          {{end}}
+        </td>
+        <td style="white-space: nowrap; font-family: monospace; font-size: 12px;">{{.Algorithm}}</td>
+        <td><span class="{{severityClass .Severity}}">{{.Severity}}</span></td>
+        <td><div class="migration">{{.Migration}}</div></td>
+      </tr>
+      {{end}}
+    </tbody>
+  </table>
+</div>
+{{else}}
+<div class="empty" style="margin-bottom: 40px;">
+  No findings — this repository is using quantum-safe cryptography.
+</div>
+{{end}}
+
+<!-- Scan history -->
+{{if gt (len .Reports) 1}}
+<div class="section-header">
+  <span class="section-title">Scan history</span>
+  <span class="section-count">{{len .Reports}} scans</span>
+</div>
+<div class="repo-list" style="margin-bottom: 32px;">
+  {{range .Reports}}
+  <div class="repo-row" style="cursor: default;">
+    <div>
+      <div class="repo-name" style="font-size: 13px;">{{shortDate .ScannedAt}}</div>
+      <div class="repo-meta">{{.FilesScanned}} files · {{.RiskSummary.Total}} findings · ref {{.Ref}}</div>
+    </div>
+    <div class="compliance-grid">
+      <span class="badge {{complianceClass .Compliance.NIS2}}">NIS2 {{complianceLabel .Compliance.NIS2}}</span>
+    </div>
+  </div>
+  {{end}}
+</div>
+{{end}}
+{{end}}

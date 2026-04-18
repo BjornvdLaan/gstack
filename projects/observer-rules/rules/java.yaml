@@ -1,0 +1,115 @@
+# Java PQC detection rules
+# Covers: JCA (Java Cryptography Architecture) + Bouncy Castle
+# Reference: NIST FIPS 203 (ML-KEM), NIST FIPS 204 (ML-DSA)
+
+- id: java-rsa-keygen
+  language: java
+  pattern: 'KeyPairGenerator\.getInstance\s*\(\s*["'']RSA["'']'
+  algorithm: RSA
+  severity: HIGH
+  message: RSA key generation is quantum-vulnerable
+  migration: >
+    Replace with ML-DSA (FIPS 204) for signing or ML-KEM (FIPS 203) for key encapsulation.
+    Bouncy Castle: org.bouncycastle.pqc.crypto.mlkem / org.bouncycastle.pqc.crypto.mldsa
+  metadata:
+    semgrep_id: java.lang.security.crypto.rsa-key-size.rsa-key-size
+    cwe: CWE-327
+    references: [NIST FIPS 203, NIST FIPS 204]
+
+- id: java-rsa-cipher
+  language: java
+  pattern: 'Cipher\.getInstance\s*\(\s*["'']RSA'
+  algorithm: RSA
+  severity: HIGH
+  message: RSA cipher is quantum-vulnerable
+  migration: >
+    Replace with ML-KEM (FIPS 203) for key encapsulation.
+    RSA encryption is discouraged even classically (PKCS#1 v1.5 padding is vulnerable).
+  metadata:
+    cwe: CWE-327
+    references: [NIST FIPS 203]
+
+- id: java-ecdh
+  language: java
+  pattern: 'KeyAgreement\.getInstance\s*\(\s*["'']ECDH["'']'
+  algorithm: ECDH
+  severity: HIGH
+  message: ECDH key agreement is quantum-vulnerable
+  migration: Replace with ML-KEM (FIPS 203) for key encapsulation.
+  metadata:
+    cwe: CWE-327
+    references: [NIST FIPS 203]
+
+- id: java-ecdsa
+  language: java
+  pattern: 'KeyPairGenerator\.getInstance\s*\(\s*["'']EC["'']'
+  algorithm: ECDSA
+  severity: HIGH
+  message: EC key generation is quantum-vulnerable (covers both ECDSA and ECDH)
+  migration: >
+    For digital signatures: replace with ML-DSA (FIPS 204).
+    For key agreement: replace with ML-KEM (FIPS 203).
+  metadata:
+    semgrep_id: java.lang.security.crypto.ec-key-usage.ec-key-usage
+    cwe: CWE-327
+    references: [NIST FIPS 203, NIST FIPS 204]
+
+- id: java-sha1-signature
+  language: java
+  pattern: 'Signature\.getInstance\s*\(\s*["'']SHA1with'
+  algorithm: SHA-1
+  severity: HIGH
+  message: SHA-1 signature scheme is classically broken and quantum-vulnerable
+  migration: >
+    Replace with ML-DSA (FIPS 204). At minimum SHA256withRSA is needed for
+    classical security, but full PQC migration is required for quantum safety.
+  metadata:
+    cwe: CWE-328
+    references: [NIST FIPS 204, NIST SP 800-131A]
+
+- id: java-dsa
+  language: java
+  pattern: 'KeyPairGenerator\.getInstance\s*\(\s*["'']DSA["'']'
+  algorithm: DSA
+  severity: HIGH
+  message: DSA is quantum-vulnerable
+  migration: Replace with ML-DSA (FIPS 204).
+  metadata:
+    cwe: CWE-327
+    references: [NIST FIPS 204]
+
+- id: java-dh
+  language: java
+  pattern: 'KeyPairGenerator\.getInstance\s*\(\s*["'']DH["'']'
+  algorithm: DH
+  severity: HIGH
+  message: Diffie-Hellman key exchange is quantum-vulnerable
+  migration: Replace with ML-KEM (FIPS 203).
+  metadata:
+    cwe: CWE-327
+    references: [NIST FIPS 203]
+
+# Bouncy Castle
+- id: java-bc-rsa-params
+  language: java
+  pattern: 'RSAKeyGenerationParameters|RSAPrivateCrtKeyParameters|RSAKeyParameters'
+  algorithm: RSA
+  severity: HIGH
+  message: Bouncy Castle RSA parameter class detected — quantum-vulnerable
+  migration: >
+    Replace with ML-DSA or ML-KEM from Bouncy Castle PQC module:
+    org.bouncycastle.pqc.crypto.mldsa / org.bouncycastle.pqc.crypto.mlkem
+  metadata:
+    cwe: CWE-327
+    references: [NIST FIPS 203, NIST FIPS 204]
+
+- id: java-bc-ecdh
+  language: java
+  pattern: 'ECDHBasicAgreement|ECDHCBasicAgreement'
+  algorithm: ECDH
+  severity: HIGH
+  message: Bouncy Castle ECDH key agreement is quantum-vulnerable
+  migration: Replace with ML-KEM via Bouncy Castle PQC module (org.bouncycastle.pqc.crypto.mlkem).
+  metadata:
+    cwe: CWE-327
+    references: [NIST FIPS 203]

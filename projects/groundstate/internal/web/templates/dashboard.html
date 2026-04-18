@@ -1,0 +1,45 @@
+{{template "layout" .}}
+
+{{define "content"}}
+<div style="margin-bottom: 8px;">
+  <div style="font-size: 20px; font-weight: 700; letter-spacing: -0.5px;">{{.OrgName}}</div>
+  <div style="font-size: 12px; color: #888; margin-top: 4px;">Last updated {{.Now}}</div>
+</div>
+
+{{if .Summaries}}
+  <div style="margin: 28px 0 32px;">
+    <div class="section-header">
+      <span class="section-title">Repositories</span>
+      <span class="section-count">{{len .Summaries}} scanned</span>
+    </div>
+    <div class="repo-list">
+      {{range .Summaries}}
+      <a href="/repos/{{repoSlug .Repo}}" class="repo-row">
+        <div>
+          <div class="repo-name">{{.Repo}}</div>
+          <div class="repo-meta">
+            {{.ReportCount}} scan{{if ne .ReportCount 1}}s{{end}} ·
+            last {{shortDate .LatestReport.ScannedAt}} ·
+            {{.LatestReport.FilesScanned}} files
+            <span class="trend">{{trendIcon .Trend}} {{.Trend}}</span>
+          </div>
+        </div>
+        <div class="compliance-grid">
+          <span class="badge {{complianceClass .LatestReport.Compliance.NIS2}}">NIS2 {{complianceLabel .LatestReport.Compliance.NIS2}}</span>
+          <span class="badge {{complianceClass .LatestReport.Compliance.DORA}}">DORA {{complianceLabel .LatestReport.Compliance.DORA}}</span>
+          <span class="badge {{complianceClass .LatestReport.Compliance.NISTFIPS203}}">FIPS 203 {{complianceLabel .LatestReport.Compliance.NISTFIPS203}}</span>
+          <span class="badge {{complianceClass .LatestReport.Compliance.NISTFIPS204}}">FIPS 204 {{complianceLabel .LatestReport.Compliance.NISTFIPS204}}</span>
+        </div>
+      </a>
+      {{end}}
+    </div>
+  </div>
+{{else}}
+  <div class="empty" style="margin-top: 40px;">
+    <p>No scan reports yet.</p>
+    <p style="margin-top: 8px; font-size: 12px;">
+      Add <code>GetQuantumDrive/Observer</code> to your GitHub Actions workflow to start scanning.
+    </p>
+  </div>
+{{end}}
+{{end}}

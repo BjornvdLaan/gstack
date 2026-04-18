@@ -24,8 +24,3 @@ extension/.auth.json
 .env.*
 !.env.example
 supabase/.temp/
-
-# Standalone product repos (have their own .git — pushed to GetQuantumDrive/)
-projects/observer/
-projects/groundstate/
-projects/observer-rules/

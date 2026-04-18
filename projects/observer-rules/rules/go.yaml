@@ -1,0 +1,65 @@
+# Go PQC detection rules
+# Covers: crypto/rsa, crypto/ecdsa, crypto/ecdh, crypto/tls, x/crypto
+
+- id: go-rsa-generate
+  language: go
+  pattern: 'rsa\.GenerateKey|rsa\.GenerateMultiPrimeKey'
+  algorithm: RSA
+  severity: HIGH
+  message: Go RSA key generation is quantum-vulnerable
+  migration: >
+    Replace with ML-KEM via golang.org/x/crypto/mlkem (added in Go 1.24) or
+    ML-DSA via github.com/cloudflare/circl/sign/mldsa.
+  metadata:
+    semgrep_id: go.lang.security.audit.crypto.use-of-weak-crypto.use-of-weak-crypto
+    cwe: CWE-327
+    references: [NIST FIPS 203, NIST FIPS 204, "Go 1.24 release notes"]
+
+- id: go-ecdh
+  language: go
+  pattern: 'ecdh\.P256\(\)|ecdh\.P384\(\)|ecdh\.P521\(\)|ecdh\.X25519\(\)'
+  algorithm: ECDH
+  severity: HIGH
+  message: Go ECDH key agreement is quantum-vulnerable
+  migration: >
+    Replace with ML-KEM via golang.org/x/crypto/mlkem (Go 1.24+).
+    For hybrid mode (classical + PQC): use X25519MLKEM768.
+  metadata:
+    cwe: CWE-327
+    references: [NIST FIPS 203, "Go 1.24 release notes"]
+
+- id: go-ecdsa
+  language: go
+  pattern: 'ecdsa\.GenerateKey|ecdsa\.Sign|ecdsa\.Verify'
+  algorithm: ECDSA
+  severity: HIGH
+  message: Go ECDSA is quantum-vulnerable
+  migration: Replace with ML-DSA via github.com/cloudflare/circl/sign/mldsa.
+  metadata:
+    cwe: CWE-327
+    references: [NIST FIPS 204]
+
+- id: go-dsa
+  language: go
+  pattern: 'dsa\.GenerateKey|dsa\.Sign'
+  algorithm: DSA
+  severity: HIGH
+  message: Go DSA is quantum-vulnerable and deprecated since Go 1.15
+  migration: Replace with ML-DSA via github.com/cloudflare/circl/sign/mldsa.
+  metadata:
+    cwe: CWE-327
+    references: [NIST FIPS 204]
+
+- id: go-tls-rsa-cipher
+  language: go
+  pattern: 'tls\.TLS_RSA_WITH|tls\.TLS_ECDHE_RSA'
+  algorithm: RSA
+  severity: HIGH
+  message: Explicit TLS cipher suite using RSA key exchange is quantum-vulnerable
+  migration: >
+    Remove explicit cipher suite lists and use TLS 1.3 (cipher suites are not
+    configurable in TLS 1.3). For hybrid PQC: set tls.CurveID to X25519MLKEM768,
+    available via golang.org/x/crypto in Go 1.24+.
+  metadata:
+    cwe: CWE-327
+    references: [NIST FIPS 203, "Go 1.24 release notes"]
